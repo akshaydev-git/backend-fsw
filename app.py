@@ -498,7 +498,7 @@ def verify_email_otp():
 
     # Validate Gmail format
     email_pattern = (
-        r"^[A-Za-z0-9._%+-]+@gmail\.com$"
+        r"^[A-Za-z0-9._%+-]+@gmail.com$"
     )
 
     if not re.fullmatch(
