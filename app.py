@@ -465,264 +465,19 @@ def verify_email_otp():
 def send_application_confirmation_email(
     recipient_email,
     applicant_name,
-    application_id
 ):
     """
     Send a confirmation email after an application
     has been successfully stored in MongoDB.
+    
     """
-
-    if not SMTP_EMAIL or not SMTP_APP_PASSWORD:
-        print(
-            "SMTP is not configured. "
-            "Email skipped."
-        )
-
-        return False
-
-    email_payload = {
-
-        "sender": {
-            "name": SMTP_SENDER_NAME,
-            "email": SMTP_EMAIL
-        },
-
-        "to": [
-            {
-                "email": recipient_email,
-                "name": applicant_name
-            }
-        ],
-
-        "subject": (
-            "FSW Recruitment 2026 - "
-            "Application Received"
-        ),
-
-        "textContent": (
-            f"Hi {applicant_name},\n\n"
-            "Thank you for applying for "
-            "Free Software Wing Recruitment 2026.\n\n"
-            "We have successfully received "
-            "your application.\n\n"
-            f"Application ID: {application_id}\n\n"
-            "Our recruitment team will review "
-            "your application and contact you "
-            "regarding the next steps.\n\n"
-            "Please keep an eye on your email inbox.\n\n"
-            "Best regards,\n"
-            "Free Software Wing\n"
-            "GRIET\n"
-            "Recruitment Team"
-        ),
-
-        "htmlContent": f"""
-        <!DOCTYPE html>
-        <html>
-
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport"
-                  content="width=device-width, initial-scale=1.0">
-
-            <title>Application Received</title>
-        </head>
-
-        <body style="
-            margin:0;
-            padding:0;
-            background:#050817;
-            font-family:Arial,Helvetica,sans-serif;
-        ">
-
-            <div style="
-                max-width:620px;
-                margin:40px auto;
-                padding:20px;
-            ">
-
-                <div style="
-                    background:#091126;
-                    border:1px solid #1c315b;
-                    border-radius:20px;
-                    padding:36px;
-                    color:#f8faff;
-                ">
-
-                    <div style="
-                        display:inline-block;
-                        padding:7px 12px;
-                        border-radius:999px;
-                        background:#102957;
-                        border:1px solid #244f9b;
-                        color:#73aaff;
-                        font-size:12px;
-                        font-weight:700;
-                        letter-spacing:0.5px;
-                    ">
-                        FSW RECRUITMENT 2026
-                    </div>
-
-                    <h1 style="
-                        margin:24px 0 10px;
-                        font-size:28px;
-                        line-height:1.2;
-                        color:#ffffff;
-                    ">
-                        Application received! 🚀
-                    </h1>
-
-                    <p style="
-                        margin:0 0 20px;
-                        color:#aab7ce;
-                        font-size:15px;
-                        line-height:1.7;
-                    ">
-                        Hi
-                        <strong style="color:#ffffff;">
-                            {applicant_name}
-                        </strong>,
-                    </p>
-
-                    <p style="
-                        color:#aab7ce;
-                        font-size:15px;
-                        line-height:1.7;
-                    ">
-                        Thank you for applying to
-                        <strong style="color:#ffffff;">
-                            Free Software Wing
-                            Recruitment 2026
-                        </strong>.
-                        We've successfully received
-                        your application.
-                    </p>
-
-                    <div style="
-                        margin:28px 0;
-                        padding:20px;
-                        border-radius:14px;
-                        background:#0d1933;
-                        border:1px solid #1b3565;
-                    ">
-
-                        <div style="
-                            color:#7283a0;
-                            font-size:11px;
-                            font-weight:700;
-                            text-transform:uppercase;
-                            letter-spacing:1px;
-                            margin-bottom:8px;
-                        ">
-                            Application ID
-                        </div>
-
-                        <div style="
-                            color:#73aaff;
-                            font-size:16px;
-                            font-weight:700;
-                            word-break:break-all;
-                        ">
-                            {application_id}
-                        </div>
-
-                    </div>
-
-                    <p style="
-                        color:#aab7ce;
-                        font-size:14px;
-                        line-height:1.7;
-                    ">
-                        Our recruitment team will review
-                        your application and contact you
-                        regarding the next steps.
-                        Please keep an eye on your inbox.
-                    </p>
-
-                    <div style="
-                        height:1px;
-                        background:#1b2b4d;
-                        margin:28px 0;
-                    "></div>
-
-                    <p style="
-                        margin:0;
-                        color:#7d8da8;
-                        font-size:12px;
-                        line-height:1.6;
-                    ">
-                        This is an automated confirmation email.
-                        Please do not reply to this message.
-                    </p>
-
-                    <p style="
-                        margin:18px 0 0;
-                        color:#dce6f7;
-                        font-size:13px;
-                        font-weight:700;
-                    ">
-                        — FSW Recruitment Team<br>
-                        GRIET
-                    </p>
-
-                </div>
-
-            </div>
-
-        </body>
-        </html>
-        """
-    }
-
-    return send_smtp_email(
-        receiver_email=recipient_email,
-        subject=email_payload["subject"],
-        text_content=email_payload["textContent"],
-        html_content=email_payload["htmlContent"]
-    )
-
-# =========================================================
-# SEND SELECTION EMAIL
-# =========================================================
-
-def send_selection_email(
-    recipient_email,
-    applicant_name
-):
-    """
-    Send a selection email to an applicant who
-    has cleared the application screening round.
-    """
-
-    if not SMTP_EMAIL or not SMTP_APP_PASSWORD:
-        print(
-            "SMTP is not configured. "
-            "Email skipped."
-        )
-
-        return False
-
-    email_payload = {
-
-        "sender": {
-            "name": SMTP_SENDER_NAME,
-            "email": SMTP_EMAIL
-        },
-
-        "to": [
-            {
-                "email": recipient_email,
-                "name": applicant_name
-            }
-        ],
-
-        "subject": (
-            "Congratulations! You Have Been Selected - "
-            "FSW Recruitment 2026"
-        ),
-
-        "textContent": (
-            f"Hi {applicant_name},\n\n"
+    url = "https://q1llke7695.execute-api.us-east-1.amazonaws.com/conf"
+    
+    payload = {
+    
+  "receiver_email":  recipient_email,
+  "applicant_name": applicant_name
+  "text_content":  f"Hi {applicant_name},\n\n"
 
             "Congratulations! 🎉\n\n"
 
@@ -744,187 +499,62 @@ def send_selection_email(
             "Free Software Wing\n"
             "GRIET\n"
             "Recruitment Team"
-        ),
 
-        "htmlContent": f"""
-        <!DOCTYPE html>
-        <html>
-
-        <head>
-            <meta charset="UTF-8">
-
-            <meta name="viewport"
-                  content="width=device-width, initial-scale=1.0">
-
-            <title>
-                You Have Been Selected
-            </title>
-        </head>
-
-        <body style="
-            margin:0;
-            padding:0;
-            background:#050817;
-            font-family:Arial,Helvetica,sans-serif;
-        ">
-
-            <div style="
-                max-width:620px;
-                margin:40px auto;
-                padding:20px;
-            ">
-
-                <div style="
-                    background:#091126;
-                    border:1px solid #1c315b;
-                    border-radius:20px;
-                    padding:36px;
-                    color:#f8faff;
-                ">
-
-                    <div style="
-                        display:inline-block;
-                        padding:7px 12px;
-                        border-radius:999px;
-                        background:#102957;
-                        border:1px solid #244f9b;
-                        color:#73aaff;
-                        font-size:12px;
-                        font-weight:700;
-                        letter-spacing:0.5px;
-                    ">
-                        FSW RECRUITMENT 2026
-                    </div>
-
-                    <h1 style="
-                        margin:24px 0 10px;
-                        font-size:30px;
-                        line-height:1.2;
-                        color:#ffffff;
-                    ">
-                        Congratulations! 🎉
-                    </h1>
-
-                    <p style="
-                        margin:0 0 20px;
-                        color:#aab7ce;
-                        font-size:15px;
-                        line-height:1.7;
-                    ">
-                        Hi
-                        <strong style="color:#ffffff;">
-                            {applicant_name}
-                        </strong>,
-                    </p>
-
-                    <p style="
-                        color:#aab7ce;
-                        font-size:15px;
-                        line-height:1.7;
-                    ">
-                        We are excited to inform you that
-                        you have been
-                        <strong style="color:#ffffff;">
-                            selected for the next round
-                        </strong>
-                        of the
-                        <strong style="color:#ffffff;">
-                            Free Software Wing
-                            Recruitment 2026
-                        </strong>.
-                    </p>
-
-                    <div style="
-                        margin:28px 0;
-                        padding:22px;
-                        border-radius:14px;
-                        background:#0d1933;
-                        border:1px solid #1b3565;
-                    ">
-
-                        <div style="
-                            color:#7283a0;
-                            font-size:11px;
-                            font-weight:700;
-                            text-transform:uppercase;
-                            letter-spacing:1px;
-                            margin-bottom:10px;
-                        ">
-                            Next Round
-                        </div>
-
-                        <div style="
-                            color:#ffffff;
-                            font-size:18px;
-                            font-weight:700;
-                            margin-bottom:8px;
-                        ">
-                            Offline Round
-                        </div>
-
-                        <div style="
-                            color:#aab7ce;
-                            font-size:14px;
-                            line-height:1.6;
-                        ">
-                            Further details regarding the
-                            date, time, and venue will be
-                            communicated to you shortly.
-                        </div>
-
-                    </div>
-
-                    <p style="
-                        color:#aab7ce;
-                        font-size:14px;
-                        line-height:1.7;
-                    ">
-                        Please keep an eye on your email
-                        inbox for further updates regarding
-                        the recruitment process.
-                    </p>
-
-                    <div style="
-                        height:1px;
-                        background:#1b2b4d;
-                        margin:28px 0;
-                    "></div>
-
-                    <p style="
-                        margin:0;
-                        color:#7d8da8;
-                        font-size:12px;
-                        line-height:1.6;
-                    ">
-                        This is an automated email from
-                        the FSW Recruitment Team.
-                    </p>
-
-                    <p style="
-                        margin:18px 0 0;
-                        color:#dce6f7;
-                        font-size:13px;
-                        font-weight:700;
-                    ">
-                        — FSW Recruitment Team<br>
-                        GRIET
-                    </p>
-
-                </div>
-
-            </div>
-
-        </body>
-        </html>
-        """
     }
+    
+    response = requests.post(url, json=payload)
+    
+    print("Status Code:", response.status_code)
+    print("Response Body:", response.json())
+    if response.status_code==200:
+        return True
+    else:
+        return False
+    
 
-    return send_smtp_email(
-        receiver_email=recipient_email,
-        subject=email_payload["subject"],
-        text_content=email_payload["textContent"],
-        html_content=email_payload["htmlContent"]
-    )
+   
+
+    
+
+# =========================================================
+# SEND SELECTION EMAIL
+# =========================================================
+
+def send_selection_email(
+    recipient_email,
+    applicant_name
+):
+    """
+    Send a selection email to an applicant who
+    has cleared the application screening round.
+    """
+    url = "https://q1llke7695.execute-api.us-east-1.amazonaws.com/conf"
+    
+    payload = {
+    "receiver_email": recipient_email,
+    "applicant_name": applicant_name,
+    "text_content": (
+        f"Dear {applicant_name},\n\n"
+        f"🎉 Congratulations! 🥳 We are thrilled to inform you that you have been selected for the offline round for FSW! 🌟 We were very impressed with your background and application.\n\n"
+        f"We will reach out shortly with further details and schedule for the offline round. Please keep an eye on this email address ({recipient_email}) for updates.\n\n"
+        f"Best regards,\nFSW Team"
+      )
+      }
+    response = requests.post(url, json=payload)
+    
+    print("Status Code:", response.status_code)
+    print("Response Body:", response.json())
+    if response.status_code==200:
+        return True
+    else:
+        return False
+   
+
+
+
+                           
+
+    
 
 # =========================================================
 # CREATE APPLICATION
@@ -1211,8 +841,8 @@ def create_application():
     email_sent = (
         send_application_confirmation_email(
             recipient_email=data["email"],
-            applicant_name=data["fullName"],
-            application_id=application_id
+            applicant_name=data["fullName"]
+        
         )
     )
 
