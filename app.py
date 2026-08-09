@@ -265,15 +265,18 @@ def send_email_otp():
         }, 400
 
     # Gmail validation
-    email_pattern = r"^[A-Za-z0-9._%+-]+@gmail.com$"
+    email = email.strip().lower()
 
+    email_pattern = r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
+    
     if not re.fullmatch(
         email_pattern,
-        email
+        email,
+        re.IGNORECASE
     ):
         return {
             "status": "error",
-            "message": "Please enter a valid Gmail address"
+            "message": "Please enter your valid GRIET college email address"
         }, 400
 
     # Generate 6-digit OTP
