@@ -8,6 +8,7 @@ from openpyxl import Workbook
 from functools import wraps
 from io import BytesIO
 
+
 import re
 import random
 import os
@@ -466,6 +467,7 @@ def send_application_confirmation_email(
     recipient_email,
     applicant_name,
 ):
+    import requests
     """
     Send a confirmation email after an application
     has been successfully stored in MongoDB.
@@ -524,6 +526,8 @@ def send_selection_email(
     recipient_email,
     applicant_name
 ):
+    import requests
+    
     """
     Send a selection email to an applicant who
     has cleared the application screening round.
@@ -563,6 +567,7 @@ def send_selection_email(
 @app.post("/api/applications")
 def create_application():
 
+    
     data = request.get_json()
 
     if not data:
