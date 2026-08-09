@@ -267,7 +267,7 @@ def send_email_otp():
     # Gmail validation
     email = email.strip().lower()
 
-    email_pattern = r"^[A-Za-z0-9._%+-]+@grietcollege.com$"
+    email_pattern = r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
     
     if not re.fullmatch(
         email_pattern,
@@ -503,7 +503,7 @@ def verify_email_otp():
     email = email.strip().lower()
     
     email_pattern = (
-        r"^[A-Za-z0-9._%+-]+@grietcollege.com$"
+        r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
     )
     
     if not re.fullmatch(
