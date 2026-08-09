@@ -476,7 +476,7 @@ def send_application_confirmation_email(
     payload = {
     
   "receiver_email":  recipient_email,
-  "applicant_name": applicant_name
+  "applicant_name": applicant_name,
   "text_content":  f"Hi {applicant_name},\n\n"
 
             "Congratulations! 🎉\n\n"
