@@ -267,7 +267,7 @@ def send_email_otp():
     # Gmail validation
     email = email.strip().lower()
 
-    email_pattern = r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
+    email_pattern = r"^[A-Za-z0-9._%+-]+@grietcollege.com$"
     
     if not re.fullmatch(
         email_pattern,
@@ -503,7 +503,7 @@ def verify_email_otp():
     email = email.strip().lower()
     
     email_pattern = (
-        r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
+        r"^[A-Za-z0-9._%+-]+@grietcollege.com$"
     )
     
     if not re.fullmatch(
@@ -1153,23 +1153,26 @@ def create_application():
                 "message": f"{field} is required"
             }, 400
 
-    # =====================================================
+ 
     # EMAIL VALIDATION
-    # =====================================================
-
+   
+    
+    data["email"] = data["email"].strip().lower()
+    
     email_pattern = (
-        r"^[A-Za-z0-9._%+-]+@gmail\.com$"
+        r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
     )
-
+    
     if not re.fullmatch(
         email_pattern,
-        data["email"]
+        data["email"],
+        re.IGNORECASE
     ):
-
+    
         return {
             "status": "error",
             "message": (
-                "Please enter a valid Gmail address"
+                "Please enter your valid GRIET college email address"
             )
         }, 400
 
