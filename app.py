@@ -243,6 +243,26 @@ def health():
 # =========================================================
 # SEND EMAIL OTP
 # =========================================================
+import random
+import smtplib
+from email.message import EmailMessage
+appkey=os.getenv("app_key")
+def send_otp(receiver_email,otp):
+            msg = EmailMessage()
+            msg["Subject"] = "Email Verification OTP"
+            msg["From"] = "akshayakash848@gmail.com"
+            msg["To"] = receiver_email
+            msg.set_content(
+                f"Your verification OTP is: {otp}\n\n"
+                "This OTP expires in 5 minutes."
+            )
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+                smtp.login(
+                    "akshayakash848@gmail.com",
+                    appkey
+                )
+                smtp.send_message(msg)
+            
 
 @app.post("/api/auth/email/send-otp")
 def send_email_otp():
@@ -299,172 +319,24 @@ def send_email_otp():
     # =====================================================
     # SEND OTP THROUGH BREVO
     # =====================================================
-
-    if (
-        not BREVO_API_KEY
-        or not BREVO_SENDER_EMAIL
-    ):
-        otp_store.pop(
-            email,
-            None
-        )
-
-        return {
-            "status": "error",
-            "message": "Email service is not configured"
-        }, 500
-
-    email_payload = {
-
-        "sender": {
-            "name": BREVO_SENDER_NAME,
-            "email": BREVO_SENDER_EMAIL
-        },
-
-        "to": [
-            {
-                "email": email
-            }
-        ],
-
-        "subject": (
-            "FSW Recruitment - "
-            "Email Verification OTP"
-        ),
-
-        "textContent": (
-            f"Your FSW Recruitment verification OTP "
-            f"is {otp}. "
-            "This OTP is valid for 2 minutes. "
-            "Do not share this OTP with anyone."
-        ),
-
-        "htmlContent": f"""
-        <!DOCTYPE html>
-        <html>
-
-        <body style="
-            font-family:Arial,sans-serif;
-            background:#f6f7f9;
-            padding:30px;
-        ">
-
-          <div style="
-              max-width:520px;
-              margin:auto;
-              background:white;
-              padding:30px;
-              border-radius:16px;
-              border:1px solid #e5e7eb;
-          ">
-
-            <h2>FSW Recruitment</h2>
-
-            <p>
-                Use the verification code below
-                to verify your email address.
-            </p>
-
-            <div style="
-                margin:24px 0;
-                padding:18px;
-                text-align:center;
-                background:#f3f4f6;
-                border-radius:12px;
-            ">
-
-              <div style="
-                  font-size:32px;
-                  font-weight:700;
-                  letter-spacing:8px;
-              ">
-                {otp}
-              </div>
-
-            </div>
-
-            <p>
-                This OTP is valid for
-                <strong>2 minutes</strong>.
-            </p>
-
-            <p style="
-                color:#6b7280;
-                font-size:13px;
-            ">
-                If you did not request this code,
-                you can safely ignore this email.
-            </p>
-
-            <p>
-                — FSW Recruitment Team
-            </p>
-
-          </div>
-
-        </body>
-        </html>
-        """
-    }
-
     try:
-
-        brevo_response = requests.post(
-            "https://api.brevo.com/v3/smtp/email",
-
-            headers={
-                "accept": "application/json",
-                "api-key": BREVO_API_KEY,
-                "content-type": "application/json"
-            },
-
-            json=email_payload,
-            timeout=15
-        )
-
-        if not brevo_response.ok:
-
-            otp_store.pop(
-                email,
-                None
-            )
-
-            print(
-                "Brevo email error:",
-                brevo_response.status_code,
-                brevo_response.text
-            )
-
-            return {
+        send_otp(email,otp)
+        return {
+        "status": "success",
+        "message": "OTP sent successfully"
+    }, 200
+    
+    except Exception as e:
+        print(e)
+        return {
                 "status": "error",
                 "message": (
                     "Unable to send verification email"
                 )
             }, 502
 
-    except requests.RequestException as e:
 
-        otp_store.pop(
-            email,
-            None
-        )
-
-        print(
-            "Brevo connection error:",
-            str(e)
-        )
-
-        return {
-            "status": "error",
-            "message": (
-                "Email service is temporarily unavailable"
-            )
-        }, 502
-
-    return {
-        "status": "success",
-        "message": "OTP sent successfully"
-    }, 200
+   
 
 
 # =========================================================
