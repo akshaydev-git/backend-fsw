@@ -12,7 +12,8 @@ import re
 import random
 import os
 import jwt
-import requests
+import smtplib
+from email.message import EmailMessage
 
 
 # =========================================================
@@ -35,10 +36,10 @@ ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 JWT_SECRET = os.getenv("JWT_SECRET")
 
-BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL")
-BREVO_SENDER_NAME = os.getenv(
-    "BREVO_SENDER_NAME",
+SMTP_EMAIL = os.getenv("SMTP_EMAIL")
+SMTP_APP_PASSWORD = os.getenv("SMTP_APP_PASSWORD")
+SMTP_SENDER_NAME = os.getenv(
+    "SMTP_SENDER_NAME",
     "FSW Recruitment"
 )
 
@@ -241,28 +242,78 @@ def health():
 
 
 # =========================================================
-# SEND EMAIL OTP
+# EMAIL / SMTP HELPERS
 # =========================================================
-import random
-import smtplib
-from email.message import EmailMessage
-appkey=os.getenv("app_key")
-def send_otp(receiver_email,otp):
-            msg = EmailMessage()
-            msg["Subject"] = "Email Verification OTP"
-            msg["From"] = "akshayakash848@gmail.com"
-            msg["To"] = receiver_email
-            msg.set_content(
-                f"Your verification OTP is: {otp}\n\n"
-                "This OTP expires in 5 minutes."
+
+def send_smtp_email(
+    receiver_email,
+    subject,
+    text_content,
+    html_content=None
+):
+    """
+    Send an email through Gmail SMTP using a Google App Password.
+    """
+
+    if not SMTP_EMAIL or not SMTP_APP_PASSWORD:
+        print("SMTP is not configured.")
+        return False
+
+    try:
+        msg = EmailMessage()
+
+        msg["Subject"] = subject
+        msg["From"] = f"{SMTP_SENDER_NAME} <{SMTP_EMAIL}>"
+        msg["To"] = receiver_email
+
+        msg.set_content(text_content)
+
+        if html_content:
+            msg.add_alternative(
+                html_content,
+                subtype="html"
             )
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-                smtp.login(
-                    "akshayakash848@gmail.com",
-                    appkey
-                )
-                smtp.send_message(msg)
-            
+
+        with smtplib.SMTP_SSL(
+            "smtp.gmail.com",
+            465
+        ) as smtp:
+
+            smtp.login(
+                SMTP_EMAIL,
+                SMTP_APP_PASSWORD
+            )
+
+            smtp.send_message(msg)
+
+        print(
+            f"Email sent successfully to "
+            f"{receiver_email}"
+        )
+
+        return True
+
+    except Exception as e:
+
+        print(
+            f"SMTP email error for {receiver_email}:",
+            str(e)
+        )
+
+        return False
+
+
+def send_otp(receiver_email, otp):
+
+    return send_smtp_email(
+        receiver_email=receiver_email,
+        subject="Email Verification OTP",
+        text_content=(
+            f"Your verification OTP is: {otp}\n\n"
+            "This OTP expires in 2 minutes."
+        )
+    )
+
 
 @app.post("/api/auth/email/send-otp")
 def send_email_otp():
@@ -284,20 +335,7 @@ def send_email_otp():
             "message": "Email is required"
         }, 400
 
-    # Gmail validation
     email = email.strip().lower()
-
-    email_pattern = r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
-    
-    if not re.fullmatch(
-        email_pattern,
-        email,
-        re.IGNORECASE
-    ):
-        return {
-            "status": "error",
-            "message": "Please enter your valid GRIET college email address"
-        }, 400
 
     # Generate 6-digit OTP
     otp = str(
@@ -317,26 +355,41 @@ def send_email_otp():
     }
 
     # =====================================================
-    # SEND OTP THROUGH BREVO
+    # SEND OTP THROUGH GMAIL SMTP
     # =====================================================
     try:
-        send_otp(email,otp)
-        return {
-        "status": "success",
-        "message": "OTP sent successfully"
-    }, 200
-    
-    except Exception as e:
-        print(e)
-        return {
+
+        email_sent = send_otp(
+            email,
+            otp
+        )
+
+        if not email_sent:
+
+            return {
                 "status": "error",
                 "message": (
                     "Unable to send verification email"
                 )
             }, 502
 
+        return {
+            "status": "success",
+            "message": "OTP sent successfully"
+        }, 200
 
-   
+    except Exception as e:
+
+        print(e)
+
+        return {
+            "status": "error",
+            "message": (
+                "Unable to send verification email"
+            )
+        }, 502
+
+
 
 
 # =========================================================
@@ -446,13 +499,10 @@ def send_application_confirmation_email(
     has been successfully stored in MongoDB.
     """
 
-    if (
-        not BREVO_API_KEY
-        or not BREVO_SENDER_EMAIL
-    ):
+    if not SMTP_EMAIL or not SMTP_APP_PASSWORD:
         print(
-            "Brevo is not configured. "
-            "Confirmation email skipped."
+            "SMTP is not configured. "
+            "Email skipped."
         )
 
         return False
@@ -460,8 +510,8 @@ def send_application_confirmation_email(
     email_payload = {
 
         "sender": {
-            "name": BREVO_SENDER_NAME,
-            "email": BREVO_SENDER_EMAIL
+            "name": SMTP_SENDER_NAME,
+            "email": SMTP_EMAIL
         },
 
         "to": [
@@ -651,48 +701,12 @@ def send_application_confirmation_email(
         """
     }
 
-    try:
-
-        brevo_response = requests.post(
-            "https://api.brevo.com/v3/smtp/email",
-
-            headers={
-                "accept": "application/json",
-                "api-key": BREVO_API_KEY,
-                "content-type": "application/json"
-            },
-
-            json=email_payload,
-            timeout=15
-        )
-
-        if not brevo_response.ok:
-
-            print(
-                "Brevo confirmation email error:",
-                brevo_response.status_code,
-                brevo_response.text
-            )
-
-            return False
-
-        print(
-            f"Confirmation email sent to "
-            f"{recipient_email}"
-        )
-
-        return True
-
-    except requests.RequestException as e:
-
-        print(
-            "Brevo confirmation email "
-            "connection error:",
-            str(e)
-        )
-
-        return False
-
+    return send_smtp_email(
+        receiver_email=recipient_email,
+        subject=email_payload["subject"],
+        text_content=email_payload["textContent"],
+        html_content=email_payload["htmlContent"]
+    )
 
 # =========================================================
 # SEND SELECTION EMAIL
@@ -707,13 +721,10 @@ def send_selection_email(
     has cleared the application screening round.
     """
 
-    if (
-        not BREVO_API_KEY
-        or not BREVO_SENDER_EMAIL
-    ):
+    if not SMTP_EMAIL or not SMTP_APP_PASSWORD:
         print(
-            "Brevo is not configured. "
-            "Selection email skipped."
+            "SMTP is not configured. "
+            "Email skipped."
         )
 
         return False
@@ -721,8 +732,8 @@ def send_selection_email(
     email_payload = {
 
         "sender": {
-            "name": BREVO_SENDER_NAME,
-            "email": BREVO_SENDER_EMAIL
+            "name": SMTP_SENDER_NAME,
+            "email": SMTP_EMAIL
         },
 
         "to": [
@@ -935,47 +946,12 @@ def send_selection_email(
         """
     }
 
-    try:
-
-        brevo_response = requests.post(
-            "https://api.brevo.com/v3/smtp/email",
-
-            headers={
-                "accept": "application/json",
-                "api-key": BREVO_API_KEY,
-                "content-type": "application/json"
-            },
-
-            json=email_payload,
-            timeout=15
-        )
-
-        if not brevo_response.ok:
-
-            print(
-                "Brevo selection email error:",
-                brevo_response.status_code,
-                brevo_response.text
-            )
-
-            return False
-
-        print(
-            f"Selection email sent to "
-            f"{recipient_email}"
-        )
-
-        return True
-
-    except requests.RequestException as e:
-
-        print(
-            "Brevo selection email connection error:",
-            str(e)
-        )
-
-        return False
-
+    return send_smtp_email(
+        receiver_email=recipient_email,
+        subject=email_payload["subject"],
+        text_content=email_payload["textContent"],
+        html_content=email_payload["htmlContent"]
+    )
 
 # =========================================================
 # CREATE APPLICATION
