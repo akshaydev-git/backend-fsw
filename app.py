@@ -73,6 +73,23 @@ verified_emails = {}
 
 
 # =========================================================
+# SHARED VALIDATION HELPERS
+# =========================================================
+
+GRIET_EMAIL_PATTERN = r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
+
+
+def is_valid_griet_email(email):
+    return bool(
+        re.fullmatch(
+            GRIET_EMAIL_PATTERN,
+            email,
+            re.IGNORECASE
+        )
+    )
+
+
+# =========================================================
 # ADMIN AUTHENTICATION MIDDLEWARE
 # =========================================================
 
@@ -255,28 +272,34 @@ def send_smtp_email(
     import requests
 
     url = "https://q1llke7695.execute-api.us-east-1.amazonaws.com/shortit"
-    
+
     payload = {
         "receiver_email": receiver_email,
-        "subject":"FSW Email Verification OTP",
-        "text_content": f"Your verification OTP is: {ottp}\n\nThis OTP expires in 2 minutes.",
-        "html_content": ""
+        "subject": subject,
+        "text_content": text_content,
+        "html_content": html_content or ""
     }
-    
-    response = requests.post(url, json=payload)
-    
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.json())
-    if response.status_code==200:
-        return True
-    else:
+
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+    except Exception as e:
+        print("OTP email request failed:", str(e))
         return False
-    
-    
-  
+
+    print("Status Code:", response.status_code)
+
+    try:
+        print("Response Body:", response.json())
+    except ValueError:
+        print("Response Body (non-JSON):", response.text)
+
+    return response.status_code == 200
+
+
+
 def send_otp(receiver_email, otp):
 
-    
+
     return send_smtp_email(
         receiver_email=receiver_email,
         ottp=otp,
@@ -286,7 +309,7 @@ def send_otp(receiver_email, otp):
             "This OTP expires in 2 minutes."
         )
     )
-    
+
 
 
 @app.post("/api/auth/email/send-otp")
@@ -310,6 +333,15 @@ def send_email_otp():
         }, 400
 
     email = email.strip().lower()
+
+    # Validate GRIET college email format before ever sending an OTP
+    if not is_valid_griet_email(email):
+        return {
+            "status": "error",
+            "message": (
+                "Please enter your valid GRIET college email address"
+            )
+        }, 400
 
     # Generate 6-digit OTP
     otp = str(
@@ -398,24 +430,20 @@ def verify_email_otp():
             "message": "OTP is required"
         }, 400
 
+    # Normalize OTP to a string so numeric input from the client
+    # (e.g. {"otp": 123456} instead of {"otp": "123456"}) still matches
+    otp = str(otp).strip()
+
     # Validate GRIET college email format
     email = email.strip().lower()
-    
-    email_pattern = (
-        r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
-    )
-    
-    if not re.fullmatch(
-        email_pattern,
-        email,
-        re.IGNORECASE
-    ):
+
+    if not is_valid_griet_email(email):
         return {
             "status": "error",
             "message": (
                 "Please enter your valid GRIET college email address"
             )
-    }, 400
+        }, 400
 
     # Find OTP
     otp_data = otp_store.get(email)
@@ -437,7 +465,7 @@ def verify_email_otp():
         }, 400
 
     # Check OTP
-    if otp != otp_data["otp"]:
+    if otp != str(otp_data["otp"]):
 
         return {
             "status": "error",
@@ -471,12 +499,12 @@ def send_application_confirmation_email(
     """
     Send a confirmation email after an application
     has been successfully stored in MongoDB.
-    
+
     """
     url = "https://q1llke7695.execute-api.us-east-1.amazonaws.com/conf"
-    
+
     payload = {
-    
+
   "receiver_email":  recipient_email,
   "applicant_name": applicant_name,
   "text_content":  f"Hi {applicant_name},\n\n"
@@ -503,20 +531,24 @@ def send_application_confirmation_email(
             "Recruitment Team"
 
     }
-    
-    response = requests.post(url, json=payload)
-    
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.json())
-    if response.status_code==200:
-        return True
-    else:
+
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+    except Exception as e:
+        print("Confirmation email request failed:", str(e))
         return False
-    
 
-   
+    print("Status Code:", response.status_code)
 
-    
+    try:
+        print("Response Body:", response.json())
+    except ValueError:
+        print("Response Body (non-JSON):", response.text)
+
+    return response.status_code == 200
+
+
+
 
 # =========================================================
 # SEND SELECTION EMAIL
@@ -527,13 +559,13 @@ def send_selection_email(
     applicant_name
 ):
     import requests
-    
+
     """
     Send a selection email to an applicant who
     has cleared the application screening round.
     """
     url = "https://q1llke7695.execute-api.us-east-1.amazonaws.com/conf"
-    
+
     payload = {
     "receiver_email": recipient_email,
     "applicant_name": applicant_name,
@@ -544,21 +576,24 @@ def send_selection_email(
         f"Best regards,\nFSW Team"
       )
       }
-    response = requests.post(url, json=payload)
-    
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.json())
-    if response.status_code==200:
-        return True
-    else:
+
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+    except Exception as e:
+        print("Selection email request failed:", str(e))
         return False
-   
+
+    print("Status Code:", response.status_code)
+
+    try:
+        print("Response Body:", response.json())
+    except ValueError:
+        print("Response Body (non-JSON):", response.text)
+
+    return response.status_code == 200
 
 
 
-                           
-
-    
 
 # =========================================================
 # CREATE APPLICATION
@@ -567,7 +602,7 @@ def send_selection_email(
 @app.post("/api/applications")
 def create_application():
 
-    
+
     data = request.get_json()
 
     if not data:
@@ -609,22 +644,14 @@ def create_application():
                 "message": f"{field} is required"
             }, 400
 
- 
+
     # EMAIL VALIDATION
-   
-    
+
+
     data["email"] = data["email"].strip().lower()
-    
-    email_pattern = (
-        r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
-    )
-    
-    if not re.fullmatch(
-        email_pattern,
-        data["email"],
-        re.IGNORECASE
-    ):
-    
+
+    if not is_valid_griet_email(data["email"]):
+
         return {
             "status": "error",
             "message": (
@@ -697,9 +724,12 @@ def create_application():
     # MOBILE VALIDATION
     # =====================================================
 
+    # Normalize to string first - the client may send this as a number
+    phone_number = str(data["phoneNumber"]).strip()
+
     if not re.fullmatch(
         r"[6-9]\d{9}",
-        data["phoneNumber"]
+        phone_number
     ):
 
         return {
@@ -709,6 +739,8 @@ def create_application():
                 "exactly 10 digits"
             )
         }, 400
+
+    data["phoneNumber"] = phone_number
 
     # =====================================================
     # GENDER VALIDATION
@@ -736,12 +768,24 @@ def create_application():
     # YEAR VALIDATION
     # =====================================================
 
-    if data["yearOfStudy"] not in allowed_years:
+    # Normalize to int first - the client may send this as a string
+    try:
+        year_of_study = int(data["yearOfStudy"])
+    except (TypeError, ValueError):
 
         return {
             "status": "error",
             "message": "Invalid year of study"
         }, 400
+
+    if year_of_study not in allowed_years:
+
+        return {
+            "status": "error",
+            "message": "Invalid year of study"
+        }, 400
+
+    data["yearOfStudy"] = year_of_study
 
     # =====================================================
     # DOMAIN VALIDATION
@@ -843,17 +887,18 @@ def create_application():
         result.inserted_id
     )
 
-    email_sent = (
-        send_application_confirmation_email(
+    # The application is already safely stored, so a failure here
+    # (network error, bad gateway response, etc.) must never turn
+    # into an unhandled exception / 500 that hides the fact that
+    # the application was actually saved successfully.
+    try:
+        email_sent = send_application_confirmation_email(
             recipient_email=data["email"],
             applicant_name=data["fullName"]
-        
         )
-    )
-
-    # The application is already safely stored.
-    # Email failure must not make the application
-    # appear to have failed.
+    except Exception as e:
+        print("Confirmation email error:", str(e))
+        email_sent = False
 
     return {
         "status": "success",
