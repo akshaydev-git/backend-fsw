@@ -507,6 +507,7 @@ def send_application_confirmation_email(
 
   "receiver_email":  recipient_email,
   "applicant_name": applicant_name,
+  "subject": "FSW Recruitment - Application Screening Update",
   "text_content":  f"Hi {applicant_name},\n\n"
 
             "Congratulations! 🎉\n\n"
@@ -569,6 +570,7 @@ def send_selection_email(
     payload = {
     "receiver_email": recipient_email,
     "applicant_name": applicant_name,
+    "subject": "FSW Recruitment - You've Been Selected!",
     "text_content": (
         f"Dear {applicant_name},\n\n"
         f"🎉 Congratulations! 🥳 We are thrilled to inform you that you have been selected for the offline round for FSW! 🌟 We were very impressed with your background and application.\n\n"
