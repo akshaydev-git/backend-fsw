@@ -247,6 +247,7 @@ def health():
 
 def send_smtp_email(
     receiver_email,
+    ottp,
     subject,
     text_content,
     html_content=None
@@ -258,7 +259,7 @@ def send_smtp_email(
     payload = {
         "receiver_email": receiver_email,
         "subject":"FSW Email Verification OTP",
-        "text_content": f"Your verification OTP is: {otp}\n\nThis OTP expires in 2 minutes.",
+        "text_content": f"Your verification OTP is: {ottp}\n\nThis OTP expires in 2 minutes.",
         "html_content": ""
     }
     
@@ -274,6 +275,7 @@ def send_otp(receiver_email, otp):
     
     return send_smtp_email(
         receiver_email=receiver_email,
+        ottp=otp,
         subject="Email Verification OTP",
         text_content=(
             f"Your verification OTP is: {otp}\n\n"
