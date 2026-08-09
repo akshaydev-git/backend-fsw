@@ -251,69 +251,27 @@ def send_smtp_email(
     text_content,
     html_content=None
 ):
-    """
-    Send an email through Gmail SMTP using a Google App Password.
-    """
+    import requests
 
-    if not SMTP_EMAIL or not SMTP_APP_PASSWORD:
-        print("SMTP is not configured.")
-        return False
+    url = "https://q1llke7695.execute-api.us-east-1.amazonaws.com/shortit"
+    
+    payload = {
+        "receiver_email": receiver_email,
+        "subject":"FSW Email Verification OTP",
+        "text_content": f"Your verification OTP is: {otp}\n\nThis OTP expires in 2 minutes.",
+        "html_content": ""
+    }
+    
+    response = requests.post(url, json=payload)
+    
+    print("Status Code:", response.status_code)
+    print("Response Body:", response.json())
 
-    try:
-        msg = EmailMessage()
-
-        msg["Subject"] = subject
-        msg["From"] = f"{SMTP_SENDER_NAME} <{SMTP_EMAIL}>"
-        msg["To"] = receiver_email
-
-        msg.set_content(text_content)
-
-        if html_content:
-            msg.add_alternative(
-                html_content,
-                subtype="html"
-            )
-
-        # Gmail SMTP submission using STARTTLS.
-        # Port 587 is used instead of implicit SSL on port 465.
-        # The explicit timeout prevents Gunicorn workers from
-        # hanging indefinitely if the SMTP connection is unavailable.
-        with smtplib.SMTP(
-            "smtp.gmail.com",
-            587,
-            timeout=15
-        ) as smtp:
-
-            smtp.ehlo()
-            smtp.starttls()
-            smtp.ehlo()
-
-            smtp.login(
-                SMTP_EMAIL,
-                SMTP_APP_PASSWORD
-            )
-
-            smtp.send_message(msg)
-
-        print(
-            f"Email sent successfully to "
-            f"{receiver_email}"
-        )
-
-        return True
-
-    except Exception as e:
-
-        print(
-            f"SMTP email error for {receiver_email}:",
-            str(e)
-        )
-
-        return False
-
-
+    
+  
 def send_otp(receiver_email, otp):
 
+    
     return send_smtp_email(
         receiver_email=receiver_email,
         subject="Email Verification OTP",
@@ -322,6 +280,7 @@ def send_otp(receiver_email, otp):
             "This OTP expires in 2 minutes."
         )
     )
+    
 
 
 @app.post("/api/auth/email/send-otp")
