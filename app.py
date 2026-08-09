@@ -246,6 +246,7 @@ def health():
 # =========================================================
 def send_smtp_email(
     receiver_email,
+    ottp,
     subject,
     text_content,
     html_content=None
@@ -253,33 +254,23 @@ def send_smtp_email(
     import requests
 
     url = "https://q1llke7695.execute-api.us-east-1.amazonaws.com/shortit"
-
+    
     payload = {
         "receiver_email": receiver_email,
-        "subject": subject,
-        "text_content": text_content,
-        "html_content": html_content or ""
+        "subject":"FSW Email Verification OTP",
+        "text_content": f"Your verification OTP is: {ottp}\n\nThis OTP expires in 2 minutes.",
+        "html_content": ""
     }
-
-    try:
-        response = requests.post(
-            url,
-            json=payload,
-            timeout=15
-        )
-
-        print("Status Code:", response.status_code)
-        print("Response Body:", response.text)
-
-        if response.ok:
-            return True
-
+    
+    response = requests.post(url, json=payload)
+    
+    print("Status Code:", response.status_code)
+    print("Response Body:", response.json())
+    if response.status_code==200:
+        return True
+    else:
         return False
-
-    except Exception as e:
-        print("Email API error:", repr(e))
-        return False
-
+    
     
   
 def send_otp(receiver_email, otp):
