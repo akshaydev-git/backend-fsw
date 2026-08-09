@@ -274,10 +274,19 @@ def send_smtp_email(
                 subtype="html"
             )
 
-        with smtplib.SMTP_SSL(
+        # Gmail SMTP submission using STARTTLS.
+        # Port 587 is used instead of implicit SSL on port 465.
+        # The explicit timeout prevents Gunicorn workers from
+        # hanging indefinitely if the SMTP connection is unavailable.
+        with smtplib.SMTP(
             "smtp.gmail.com",
-            465
+            587,
+            timeout=15
         ) as smtp:
+
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.ehlo()
 
             smtp.login(
                 SMTP_EMAIL,
