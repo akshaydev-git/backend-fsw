@@ -499,21 +499,24 @@ def verify_email_otp():
             "message": "OTP is required"
         }, 400
 
-    # Validate Gmail format
+    # Validate GRIET college email format
+    email = email.strip().lower()
+    
     email_pattern = (
-        r"^[A-Za-z0-9._%+-]+@gmail.com$"
+        r"^[A-Za-z0-9._%+-]+@grietcollege\.com$"
     )
-
+    
     if not re.fullmatch(
         email_pattern,
-        email
+        email,
+        re.IGNORECASE
     ):
         return {
             "status": "error",
             "message": (
-                "Please enter a valid Gmail address"
+                "Please enter your valid GRIET college email address"
             )
-        }, 400
+    }, 400
 
     # Find OTP
     otp_data = otp_store.get(email)
