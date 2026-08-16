@@ -566,20 +566,16 @@ def send_selection_email(
     has cleared the application screening round.
     """
     url = "https://q1llke7695.execute-api.us-east-1.amazonaws.com/conf"
-    whatsapp_group_link="https://chat.whatsapp.com/BRJaYw5pnqy57eNhncNF5R?s=cl&p=a&ilr=0"
+
     payload = {
     "receiver_email": recipient_email,
     "applicant_name": applicant_name,
     "subject": "FSW Recruitment - You've Been Selected!",
     "text_content": (
-        
         f"Dear {applicant_name},\n\n"
         f"🎉 Congratulations! 🥳 We are thrilled to inform you that you have been selected for the offline round for FSW! 🌟 We were very impressed with your background and application.\n\n"
-        f"We will reach out shortly with further details and schedule for the offline round. Please join the WhatsApp group using the link below to receive further updates.\n\n"
-        f"WhatsApp Group: "https://chat.whatsapp.com/BRJaYw5pnqy57eNhncNF5R?s=cl&p=a&ilr=0"\n\n"
+        f"We will reach out shortly with further details and schedule for the offline round. Please join in this whatsapp group for further updates :https://chat.whatsapp.com/BRJaYw5pnqy57eNhncNF5R?s=cl&p=a&ilr=0 \n\n"
         f"Best regards,\nFSW Team"
-
-
       )
       }
 
