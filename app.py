@@ -572,22 +572,13 @@ def send_selection_email(
     "applicant_name": applicant_name,
     "subject": "FSW Recruitment - You've Been Selected!",
     "text_content": (
-            f"""
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img src="https://files.catbox.moe/09v9s3.jpg" alt="FSW Logo" style="max-width: 180px; height: auto;">
-            </div>
-            
-            <p>Dear {applicant_name},</p>
-            
-            <p>🎉 <strong>Congratulations!</strong> 🥳 We are thrilled to inform you that you have been selected for the <strong>offline round for FSW!</strong> 🌟 We were very impressed with your background and application.</p>
-            
-            <p>We will reach out shortly with further details and schedule for the offline round. Please join the WhatsApp group using the link below to receive further updates.</p>
-            
-            <p><strong>WhatsApp Group:</strong> <a href="{whatsapp_group_link}">Join the WhatsApp Group</a></p>
-            
-            <p>Best regards,<br>
-            <strong>FSW Team</strong></p>
-            """
+        
+        f"Dear {applicant_name},\n\n"
+        f"🎉 Congratulations! 🥳 We are thrilled to inform you that you have been selected for the offline round for FSW! 🌟 We were very impressed with your background and application.\n\n"
+        f"We will reach out shortly with further details and schedule for the offline round. Please join the WhatsApp group using the link below to receive further updates.\n\n"
+        f"WhatsApp Group: "https://chat.whatsapp.com/BRJaYw5pnqy57eNhncNF5R?s=cl&p=a&ilr=0"\n\n"
+        f"Best regards,\nFSW Team"
+
 
       )
       }
